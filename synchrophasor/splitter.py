@@ -1,6 +1,6 @@
 from synchrophasor.frame import *
 from synchrophasor.pdc import Pdc
-from synchrophasor.pmu import Pmu
+from synchrophasor.pmu_mod_old import Pmu
 
 
 __author__ = "Stevan Sandi"

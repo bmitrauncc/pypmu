@@ -1,4 +1,4 @@
-from synchrophasor.pmu import Pmu
+from synchrophasor.pmu_mod_old import Pmu
 
 
 """
