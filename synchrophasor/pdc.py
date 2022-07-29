@@ -138,7 +138,7 @@ class Pdc(object):
             received_data += message_chunk
             bytes_received += len(message_chunk)
         
-        # Check if we received a whole multiplicum of data
+        # Check if we received whole packages of data
         if len(received_data)%total_frame_size==0:
             print("Received data length " + str(len(received_data)))
             print("Tota frame size " + str(total_frame_size))
