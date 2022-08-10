@@ -1858,7 +1858,6 @@ class DataFrame(CommonFrame):
         self.cfg = cfg
         self.set_stat(stat)
         self.set_phasors(phasors)
-        print("Freq is " +str(freq))
         self.set_freq(freq)
         self.set_dfreq(dfreq)
         self.set_analog(analog)
@@ -2421,7 +2420,6 @@ class DataFrame(CommonFrame):
 
             if not CommonFrame._check_crc(byte_data):
                 raise FrameError("CRC failed. Configuration frame not valid.")
-            print(cfg)
             num_pmu = cfg.get_num_pmu()
             data_format = cfg.get_data_format()
             phasor_num = cfg.get_phasor_num()
