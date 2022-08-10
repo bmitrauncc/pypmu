@@ -12,12 +12,13 @@ import socket
 if __name__ == "__main__":
 
     ip = socket.gethostbyname(socket.gethostname())
-    ip = "10.219.106.36"
-    pdc = Pdc(pdc_id=7, pmu_ip=ip, pmu_port=2223)
+    ip = "192.168.10.107"
+    pdc = Pdc(pdc_id=1111, pmu_ip=ip, pmu_port=2223)
     pdc.logger.setLevel("DEBUG")
 
     pdc.run()  # Connect to PMU
-
+    
+    pdc.stop()
     config = pdc.get_config()  # Get configuration from PMU
 
     pdc.start()  # Request to start sending measurements

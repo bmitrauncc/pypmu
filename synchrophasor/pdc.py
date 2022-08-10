@@ -3,7 +3,6 @@ import socket
 from sys import stdout
 from synchrophasor.frame import *
 
-
 __author__ = "Stevan Sandi"
 __copyright__ = "Copyright (c) 2016, Tomo Popovic, Stevan Sandi, Bozo Krstajic"
 __credits__ = []
@@ -138,10 +137,11 @@ class Pdc(object):
             received_data += message_chunk
             bytes_received += len(message_chunk)
         
+        print("Received data length " + str(len(received_data)))
+        print("Total frame size " + str(total_frame_size))
+        
         # Check if we received whole packages of data
         if len(received_data)%total_frame_size==0:
-            print("Received data length " + str(len(received_data)))
-            print("Tota frame size " + str(total_frame_size))
             n_messages = int(len(received_data)/total_frame_size)
             if n_messages == 1:
                 return self.decode(received_data)
@@ -163,16 +163,16 @@ class Pdc(object):
         """
         received_message = None
         # Try to decode received data
-        try:
-            received_message = CommonFrame.convert2frame(received_data,
-                                                         self.pmu_cfg2)
-            self.logger.debug("[%d] - Received %s from PMU (%s:%d)",
-                              self.pdc_id, type(received_message).__name__,
-                              self.pmu_ip, self.pmu_port)
-        except FrameError:
-            self.logger.warning(
-                "[%d] - Received unknown message from PMU (%s:%d)",
-                self.pdc_id, self.pmu_ip, self.pmu_port)
+        #try:
+        received_message = CommonFrame.convert2frame(received_data,
+                                                     self.pmu_cfg2)
+        self.logger.debug("[%d] - Received %s from PMU (%s:%d)",
+                          self.pdc_id, type(received_message).__name__,
+                          self.pmu_ip, self.pmu_port)
+        #except FrameError:
+        #    self.logger.warning(
+        #        "[%d] - Received unknown message from PMU (%s:%d)",
+        #        self.pdc_id, self.pmu_ip, self.pmu_port)
 
         return received_message
 
