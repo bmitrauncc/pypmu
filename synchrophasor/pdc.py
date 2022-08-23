@@ -3,7 +3,6 @@ import socket
 from sys import stdout
 from synchrophasor.frame import *
 
-
 __author__ = "Stevan Sandi"
 __copyright__ = "Copyright (c) 2016, Tomo Popovic, Stevan Sandi, Bozo Krstajic"
 __credits__ = []
@@ -117,7 +116,6 @@ class Pdc(object):
         """
 
         received_data = b""
-        received_message = None
 
         """
         Keep receiving until SYNC + FRAMESIZE is received, 4 bytes in total.
@@ -138,19 +136,42 @@ class Pdc(object):
                 break
             received_data += message_chunk
             bytes_received += len(message_chunk)
+        
+        # Check if we received whole packages of data
+        if len(received_data)%total_frame_size==0:
+            n_messages = int(len(received_data)/total_frame_size)
+            if n_messages == 1:
+                return self.decode(received_data)
+            else:
+                i = 0
+                messages = []
+                while i < n_messages:
+                    messages.append(
+                        self.decode(
+                            received_data[
+                                i*total_frame_size:total_frame_size*(1+i)]))
+                    i += 1
 
-        # If complete message is received try to decode it
-        if len(received_data) == total_frame_size:
-            try:
-                received_message = CommonFrame.convert2frame(received_data, self.pmu_cfg2)  # Try to decode received data
-                self.logger.debug("[%d] - Received %s from PMU (%s:%d)", self.pdc_id, type(received_message).__name__,
-                                  self.pmu_ip, self.pmu_port)
-            except FrameError:
-                self.logger.warning("[%d] - Received unknown message from PMU (%s:%d)",
-                                    self.pdc_id, self.pmu_ip, self.pmu_port)
+                return messages
+    
+    def decode(self, received_data):
+        """
+        Decode a chunck of received_data
+        """
+        received_message = None
+        # Try to decode received data
+        try:
+            received_message = CommonFrame.convert2frame(received_data,
+                                                         self.pmu_cfg2)
+            self.logger.debug("[%d] - Received %s from PMU (%s:%d)",
+                              self.pdc_id, type(received_message).__name__,
+                              self.pmu_ip, self.pmu_port)
+        except FrameError:
+            self.logger.warning(
+                "[%d] - Received unknown message from PMU (%s:%d)",
+                self.pdc_id, self.pmu_ip, self.pmu_port)
 
         return received_message
-
 
     def quit(self):
         """

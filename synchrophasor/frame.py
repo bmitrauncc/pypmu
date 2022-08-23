@@ -13,7 +13,7 @@ Data Transfer for Power Systems.
 
 """
 
-import collections
+import collections.abc
 from abc import ABCMeta, abstractmethod
 from struct import pack, unpack
 from time import time
@@ -232,7 +232,7 @@ class CommonFrame(metaclass=ABCMeta):
             self.set_soc(int(t))  # Get current timestamp
 
         if frasec is not None:
-            if isinstance(frasec, collections.Sequence):
+            if isinstance(frasec, collections.abc.Sequence):
                 self.set_frasec(*frasec)
             else:
                 self.set_frasec(frasec)  # Just set fraction of second and use default values for other arguments.
@@ -1917,7 +1917,7 @@ class DataFrame(CommonFrame):
         if isinstance(trigger_reason, str):
             trigger_reason = DataFrame.TRIGGER_REASON[trigger_reason]
 
-        stat = measurement_status << 2
+        stat = measurement_status << 1
         if not sync:
             stat |= 1
 
@@ -1952,7 +1952,7 @@ class DataFrame(CommonFrame):
     @staticmethod
     def _int2stat(stat):
 
-        measurement_status = DataFrame.MEASUREMENT_STATUS_WORDS[stat >> 15]
+        measurement_status = DataFrame.MEASUREMENT_STATUS_WORDS[stat >> 14]
         sync = bool(stat & 0x2000)
 
         if stat & 0x1000:
@@ -1964,8 +1964,8 @@ class DataFrame(CommonFrame):
         cfg_change = bool(stat & 0x400)
         modified = bool(stat & 0x200)
 
-        time_quality = DataFrame.TIME_QUALITY_WORDS[stat & 0x1c0]
-        unlocked = DataFrame.UNLOCKED_TIME_WORDS[stat & 0x30]
+        time_quality = DataFrame.TIME_QUALITY_WORDS[stat & 0x1c0>>6]
+        unlocked = DataFrame.UNLOCKED_TIME_WORDS[stat & 0x30>>4]
         trigger_reason = DataFrame.TRIGGER_REASON_WORDS[stat & 0xf]
 
         return measurement_status, sync, sorting, trigger, cfg_change, modified, time_quality, unlocked, trigger_reason
@@ -2141,7 +2141,8 @@ class DataFrame(CommonFrame):
             data_format = DataFrame._int2format(data_format)
 
         if data_format[3]:  # FREQ/DFREQ floating point
-            if not -32.767 <= freq <= 32.767:
+            #if not -32.767 <= freq <= 32.767:
+            if not -100 <= freq <= 100:
                 raise ValueError("FREQ must be in range -32.767 <= FREQ <= 32.767.")
 
             freq = unpack("!I", pack("!f", float(freq)))[0]
@@ -2419,7 +2420,6 @@ class DataFrame(CommonFrame):
 
             if not CommonFrame._check_crc(byte_data):
                 raise FrameError("CRC failed. Configuration frame not valid.")
-
             num_pmu = cfg.get_num_pmu()
             data_format = cfg.get_data_format()
             phasor_num = cfg.get_phasor_num()
