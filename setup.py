@@ -2,7 +2,7 @@ import sys
 from distutils.core import setup
 
 
-if not sys.version_info[0] == 3:
+if not sys.version_info[0] >= 3:
     sys.exit("[ERROR] Package syncrhrophasor is only available for Python 3.")
 
 
