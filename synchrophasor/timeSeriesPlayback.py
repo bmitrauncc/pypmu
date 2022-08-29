@@ -2,7 +2,6 @@ import numpy as np
 from synchrophasor.simplePMU import SimplePMU
 import threading
 import time
-import matplotlib.pyplot as plt
 
 """
 tinyPMU will listen on ip:port for incoming connections.
