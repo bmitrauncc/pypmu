@@ -20,7 +20,7 @@ class SimplePMU:
         self.ip = ip
         self.port = port
         self.pmu = PmuMod(ip=self.ip, port=self.port, set_timestamp=set_timestamp, data_rate=publish_frequency)
-        self.pmu.logger.setLevel("DEBUG")
+        # self.pmu.logger.setLevel("DEBUG")
 
         conf_kwargs = dict(
             pmu_id_code=1410,  # PMU_ID

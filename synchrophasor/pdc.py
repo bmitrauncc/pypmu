@@ -124,7 +124,9 @@ class Pdc(object):
         """
 
         while len(received_data) < 4:
-            received_data += self.pmu_socket.recv(self.buffer_size)
+            received_data += self.pmu_socket.recv(4)  # self.buffer_size)
+            # Receiving self.buffer_size bytes might cause problems
+            # if the buffer size is larger than the frame size.
 
         bytes_received = len(received_data)
         total_frame_size = int.from_bytes(received_data[2:4], byteorder="big", signed=False)
@@ -138,7 +140,7 @@ class Pdc(object):
             bytes_received += len(message_chunk)
         
         # Check if we received whole packages of data
-        if len(received_data)%total_frame_size==0:
+        if len(received_data) % total_frame_size == 0:
             n_messages = int(len(received_data)/total_frame_size)
             if n_messages == 1:
                 return self.decode(received_data)
