@@ -3,6 +3,7 @@ from synchrophasor.timeSeriesPlayback import PMUTimeSeriesPublisher
 import threading
 import time
 import matplotlib.pyplot as plt
+import socket
 
 """
 tinyPMU will listen on ip:port for incoming connections.
@@ -14,18 +15,28 @@ be sent.
 
 if __name__ == "__main__":
     # __file__ = r'/examples/timeSeriesPlayback.py'
-    t_end = 10
-    dt = 0.02
+    test = 2
+    if test == 1:
+        t_end = 10
+        dt = 0.02
 
-    # List of PMUs
-    station_names = ['PMU1', 'PMU2', 'PMU3']
+        # List of PMUs
+        station_names = ['PMU1', 'PMU2', 'PMU3']
 
-    # List of list of channels pr. PMU
-    channel_names = [
-        ['Phasor1.1', 'Phasor1.2'],
-        ['Phasor2.1', 'Phasor2.2', 'Phasor2.3'],
-        ['Phasor3.1'],
-    ]
+        # List of list of channels pr. PMU
+        channel_names = [
+            ['Phasor1.1', 'Phasor1.2'],
+            ['Phasor2.1', 'Phasor2.2', 'Phasor2.3'],
+            ['Phasor3.1'],
+        ]
+
+    else:  # test == 2
+        t_end = 10
+        dt = 0.02
+        n_stations = 40
+        n_channels = 1
+        station_names = ['PMU{}'.format(i) for i in range(n_stations)]
+        channel_names = [['Ph{}'.format(j) for j in range(n_channels)] for _ in range(n_stations)]
 
     # Generate some random time series
     t = np.arange(0, t_end, dt)
@@ -51,10 +62,9 @@ if __name__ == "__main__":
     ax[1, 0].set_ylabel('Phasor angles [rad]')
 
     # PMU Snapshot Publisher
-    # ip = "10.0.0.39"
-    ip = '10.218.97.44'
-    # ip = "10.218.96.200"
-    port = 50000
+    hostname = socket.gethostname()
+    ip = socket.gethostbyname(hostname)
+    port = 50001
 
     pmu_publisher = PMUTimeSeriesPublisher(
         ip, port,

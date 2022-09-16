@@ -124,7 +124,7 @@ class Pdc(object):
         """
 
         while len(received_data) < 4:
-            received_data += self.pmu_socket.recv(4)  # self.buffer_size)
+            received_data += self.pmu_socket.recv(1)  # self.buffer_size)
             # Receiving self.buffer_size bytes might cause problems
             # if the buffer size is larger than the frame size.
 

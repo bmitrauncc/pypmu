@@ -2343,6 +2343,12 @@ class DataFrame(CommonFrame):
         return unpack("!H", pack("!H", digital))[0]
 
 
+    def get_time(self):
+
+        # This is a faster way to get time stamp than self.get_measurements()['time']
+        return self.get_soc() + self.get_frasec()[0] / self.cfg.get_time_base()
+
+
     def get_measurements(self):
 
         measurements = []

@@ -51,6 +51,7 @@ if __name__ == "__main__":
                 # pdc.quit()  # Close connection
                 # break
         elif isinstance(data, list):
+            print('Got multiple data frames')
             for data_ in data:
                 print(data_.get_measurements())
 
