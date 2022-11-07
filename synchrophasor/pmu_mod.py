@@ -133,7 +133,7 @@ class PmuMod(Pmu):
                     # print('Check 1-2')
                     while len(received_data) < 4 and not stop_event.is_set():
                         # print('Check 2')
-                        received_data += connection.recv(buffer_size)
+                        received_data += connection.recv(1)  # buffer_size)
                         # print('Check 3')
                     # print('Check 4')
                     bytes_received = len(received_data)
