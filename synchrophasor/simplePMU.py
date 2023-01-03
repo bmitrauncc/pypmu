@@ -8,13 +8,13 @@ import queue
 
 
 class SimplePMU:
-    def __init__(self, ip, port, station_names, channel_names, publish_frequency=50, set_timestamp=True):
+    def __init__(self, ip, port, station_names, channel_names, pdc_id=1, channel_types=None, id_codes=None, publish_frequency=50, set_timestamp=True):
 
         self.station_names = station_names
         self.channel_names = channel_names
+        self.channel_types = channel_types
 
         self.n_pmus = len(self.station_names)
-        # self.n_pmu_channels = [len(channel_names_) for channel_names_ in channel_names]
 
         # Initialize PMUs
         self.ip = ip
@@ -23,39 +23,25 @@ class SimplePMU:
         # self.pmu.logger.setLevel("DEBUG")
 
         conf_kwargs = dict(
-            pmu_id_code=1410,  # PMU_ID
+            pmu_id_code=pdc_id,  # PMU_ID
             time_base=1000000,  # TIME_BASE
             num_pmu=self.n_pmus,  # Number of PMUs included in recorded_pmu_data_raw frame
-            # station_name='PMU',  # Station name
-            id_code=1410,  # Data-stream ID(s)
             data_format=(True, True, True, True),  # Data format - POLAR; PH - REAL; AN - REAL; FREQ - REAL;
-            # phasor_num=self.n_phasors,  # Number of phasors
-            analog_num=1,  # Number of analog values
-            digital_num=1,  # Number of digital status words
-            # channel_names=channel_names[0] + [
-            #     "ANALOG1", "BREAKER 1 STATUS",
-            #     "BREAKER 2 STATUS", "BREAKER 3 STATUS", "BREAKER 4 STATUS", "BREAKER 5 STATUS",
-            #     "BREAKER 6 STATUS", "BREAKER 7 STATUS", "BREAKER 8 STATUS", "BREAKER 9 STATUS",
-            #     "BREAKER A STATUS", "BREAKER B STATUS", "BREAKER C STATUS", "BREAKER D STATUS",
-            #     "BREAKER E STATUS", "BREAKER F STATUS", "BREAKER G STATUS"
-            # ],  # Channel Names
-            # Conversion factor for phasor channels - (float representation, not important)
-            an_units=[(1, "pow")],  # Conversion factor for analog channels
-            dig_units=[(0x0000, 0xffff)],  # Mask words for digital status words
+            analog_num=0,  # Number of analog values
+            digital_num=0,  # Number of digital status words
+            an_units=[],  # (1, "pow")],  # Conversion factor for analog channels
+            dig_units=[],  # (0x0000, 0xffff)],  # Mask words for digital status words
             f_nom=50,  # Nominal frequency
             cfg_count=1,  # Configuration change count
             data_rate=publish_frequency
         )
 
-        other_channel_names = [
-            "ANALOG1", "BREAKER 1 STATUS",
-            "BREAKER 2 STATUS", "BREAKER 3 STATUS", "BREAKER 4 STATUS", "BREAKER 5 STATUS",
-            "BREAKER 6 STATUS", "BREAKER 7 STATUS", "BREAKER 8 STATUS", "BREAKER 9 STATUS",
-            "BREAKER A STATUS", "BREAKER B STATUS", "BREAKER C STATUS", "BREAKER D STATUS",
-            "BREAKER E STATUS", "BREAKER F STATUS", "BREAKER G STATUS"
-        ]
+        other_channel_names = []
+
         if self.n_pmus == 1:
-            self.n_phasors = len(self.channel_names[0])
+            self.n_phasors_per_pmu = len(self.channel_names[0])
+            self.n_phasors = self.n_phasors_per_pmu
+            conf_kwargs['id_code'] = id_codes[0]
             conf_kwargs['station_name'] = station_names[0]  # 'PMU'
             conf_kwargs['ph_units'] = [(0, "v")]*self.n_phasors
             conf_kwargs['channel_names'] = self.channel_names[0] + other_channel_names
@@ -63,8 +49,16 @@ class SimplePMU:
         else:
             self.n_phasors_per_pmu = [len(channel_names_) for channel_names_ in self.channel_names]
             conf_kwargs['phasor_num'] = self.n_phasors_per_pmu
-            conf_kwargs['ph_units'] = [[(0, "v")]*n_phasors_per_pmu for n_phasors_per_pmu in self.n_phasors_per_pmu]
-            conf_kwargs['id_code'] = list(range(conf_kwargs['id_code'], conf_kwargs['id_code'] + self.n_pmus))
+            if self.channel_types is not None:
+                conf_kwargs['ph_units'] = [[(0, channel_type_) for channel_type_ in channel_type] for channel_type in self.channel_types]
+            else:
+                conf_kwargs['ph_units'] = [[(0, "v")]*n_phasors_per_pmu for n_phasors_per_pmu in self.n_phasors_per_pmu]
+
+            if id_codes is not None:
+                conf_kwargs['id_code'] = id_codes
+            else:
+                conf_kwargs['id_code'] = list(range(conf_kwargs['id_code'], conf_kwargs['id_code'] + self.n_pmus))
+
             conf_kwargs['station_name'] = self.station_names
             conf_kwargs['channel_names'] = [channel_names_ + other_channel_names for channel_names_ in self.channel_names]
             for key in ['data_format', 'analog_num', 'digital_num', 'an_units', 'dig_units', 'f_nom', 'cfg_count']:
@@ -105,7 +99,7 @@ class SimplePMU:
 
         print('Done.')
 
-    def publish(self, time_stamp=None, phasor_data=None):
+    def publish(self, time_stamp=None, phasor_data=None, freq_data=None, dfreq_data=None):
 
         if time_stamp is None:
             time_stamp = time.time()
@@ -113,16 +107,14 @@ class SimplePMU:
         # soc = int(time_stamp)
         # frasec = int((((repr((time_stamp % 1))).split("."))[1])[0:6])
         # frasec = int(format(time_stamp % 1, '.6f').split(".")[1])
-        soc, frasec = [int(val) for val in format(time_stamp, '.6f').split(".")]
+        soc, frasec = [int(val) for val in format(time_stamp, '.6f').split(".")]    
 
         data_kwargs = dict(
             soc=soc,
             frasec=(frasec, '+'),
-            analog=[9.91],
-            digital=[0x0001],
+            analog=[],
+            digital=[],
             stat=("ok", True, "timestamp", False, False, False, 0, "<10", 0),
-            freq=0,  #10 + np.random.randn(1)*1e-1,
-            dfreq=0,
         )
 
         if phasor_data is None:
@@ -131,14 +123,21 @@ class SimplePMU:
             else:
                 data_kwargs['phasors'] = [[(random.uniform(215.0, 240.0), random.uniform(-np.pi, np.pi)) for _ in
                                range(n_phasors_per_pmu)] for n_phasors_per_pmu in self.n_phasors_per_pmu]
-
-        # if self.n_pmus > 1:
-        #     data_kwargs['phasors'] = [phasor_data] * self.n_pmus
         else:
             data_kwargs['phasors'] = phasor_data
+        
+        if freq_data is None:
+            data_kwargs['freq'] = 0 if self.n_pmus == 1 else [0]*self.n_pmus
+        else:
+            data_kwargs['freq'] = freq_data
+
+        if dfreq_data is None:
+            data_kwargs['dfreq'] = 0 if self.n_pmus == 1 else [0]*self.n_pmus
+        else:
+            data_kwargs['dfreq'] = dfreq_data 
 
         if self.n_pmus > 1:
-            for key in ['analog', 'digital', 'stat', 'freq', 'dfreq']:
+            for key in ['analog', 'digital', 'stat']:
                 data_kwargs[key] = [data_kwargs[key]]*self.n_pmus
 
         self.pmu.send_data(**data_kwargs)

@@ -12,7 +12,7 @@ import socket
 if __name__ == "__main__":
 
     ip = socket.gethostbyname(socket.gethostname())
-    pdc = Pdc(pdc_id=1410, pmu_ip=ip, pmu_port=50001)
+    pdc = Pdc(pdc_id=1410, pmu_ip=ip, pmu_port=50000)
     pdc.logger.setLevel("DEBUG")
 
     pdc.run()  # Connect to PMU
@@ -25,7 +25,7 @@ if __name__ == "__main__":
    
     i = 0
     data_array = []
-    while i < 3:
+    while i < 30:
         data = pdc.get()  # Keep receiving data
 
         if type(data) == DataFrame:
