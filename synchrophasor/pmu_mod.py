@@ -79,13 +79,13 @@ class PmuMod(Pmu):
 
             process.daemon = True
 
-            for i, thread in enumerate(threading.enumerate()):
-                print(thread)
+            # for i, thread in enumerate(threading.enumerate()):
+            #     print(thread)
 
             process.start()
 
-            for i, thread in enumerate(threading.enumerate()):
-                print(thread)
+            # for i, thread in enumerate(threading.enumerate()):
+            #     print(thread)
             self.clients.append(process)
             self.client_stop_events.append(stop_event)
 

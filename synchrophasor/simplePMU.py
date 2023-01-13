@@ -41,7 +41,7 @@ class SimplePMU:
         if self.n_pmus == 1:
             self.n_phasors_per_pmu = len(self.channel_names[0])
             self.n_phasors = self.n_phasors_per_pmu
-            conf_kwargs['id_code'] = id_codes[0]
+            conf_kwargs['id_code'] = id_codes[0] if id_codes is not None else 1
             conf_kwargs['station_name'] = station_names[0]  # 'PMU'
             conf_kwargs['ph_units'] = [(0, "v")]*self.n_phasors
             conf_kwargs['channel_names'] = self.channel_names[0] + other_channel_names
@@ -57,7 +57,7 @@ class SimplePMU:
             if id_codes is not None:
                 conf_kwargs['id_code'] = id_codes
             else:
-                conf_kwargs['id_code'] = list(range(conf_kwargs['id_code'], conf_kwargs['id_code'] + self.n_pmus))
+                conf_kwargs['id_code'] = list(range(1, self.n_pmus + 1))
 
             conf_kwargs['station_name'] = self.station_names
             conf_kwargs['channel_names'] = [channel_names_ + other_channel_names for channel_names_ in self.channel_names]
@@ -180,6 +180,6 @@ if __name__ == '__main__':
 
     pmu.cleanup()
     # sys.exit()
-    import threading
-    for thread in threading.enumerate():
-        print(thread.name)
+    # import threading
+    # for thread in threading.enumerate():
+    #     print(thread.name)
