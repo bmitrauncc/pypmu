@@ -36,7 +36,7 @@ def run_pmu(n_msg):
         channel_names=channel_names,
         pdc_id=pdc_id,
         channel_types=channel_types,
-        #id_codes=id_codes
+        id_codes=id_codes
     )
     pmu.run()
 
