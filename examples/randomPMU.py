@@ -13,7 +13,7 @@ values for phasors will be sent.
 
 if __name__ == "__main__":
 
-    pmu = Pmu(ip="127.0.0.1", port=1410)
+    pmu = Pmu(ip="127.0.0.1", port=4712)
     pmu.logger.setLevel("DEBUG")
 
     cfg = ConfigFrame2(1410,  # PMU_ID
